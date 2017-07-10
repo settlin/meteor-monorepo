@@ -1,7 +1,7 @@
 import { render } from 'react-dom';
 import React from 'react';
-import { Table } from '/imports/examples/reactive-table';
+import { App } from '/imports/app';
 
 Meteor.startup(() => {
-	render(<Table/>, document.getElementById('root'));
+	render(<App/>, document.getElementById('root'));
 });
