@@ -1,7 +1,9 @@
-meteor-maintenance-mode
+maintenance-mode
 ============
 
 A simple package to enable maintenance mode for your app. For Meteor 1.3+, as it uses ecmascript, but in case you need it for older Meteor versions, it is quite easy to build.
+<br />
+`meteor add settlin:maintenance-mode`
 
 <br />
 

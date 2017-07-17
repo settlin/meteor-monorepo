@@ -1,5 +1,5 @@
 Package.describe({
-	name: 'settlin:meteor-maintenance-mode',
+	name: 'settlin:maintenance-mode',
 	version: '1.1.8',
 	summary: 'Toggle Maintenance Mode For Your App',
 	git: 'https://github.com/settlin/meteor-monorepo/tree/master/packages/maintenance-mode',
