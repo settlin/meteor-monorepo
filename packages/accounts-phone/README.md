@@ -8,8 +8,10 @@ Phone and OTP based login for Meteor.
 In a Meteor app directory, enter:
 
 ```
+$ meteor npm install --save libphonenumber-js
 $ meteor add settlin:accounts-phone
 ```
+I have removed `libphonenumber-js` from the dependencies so that the library is not added twice if you also use it in your app. If you don't then anyways it will be loaded once.
 
 ## The database
 
