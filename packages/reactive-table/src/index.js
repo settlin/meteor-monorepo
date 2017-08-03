@@ -41,10 +41,10 @@ class Table extends React.PureComponent {
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
-	TableContainer = createContainer(({publication, collection, filters, page, rowsPerPage, sort, onDataChange}) => {
+	TableContainer = createContainer(({publication, collection, filters, page, rowsPerPage, sort, onDataChange, manual}) => {
 		if (!_pubs[publication]) {
 			_pubs[publication] = {publicationId: Math.round(Math.random() * 10000000000) + ''}; // 10 digits
-			_pubs[publication].name = 'reactive-table-rows-' + publication + '-' + _pubs[publication].publicationId;
+			_pubs[publication].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + _pubs[publication].publicationId;
 			_pubs[publication].collection = collection;
 		}
 		_pubs[publication].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: _pubs[publication].publicationId, filters, options: {limit: rowsPerPage, skip: rowsPerPage * (page - 1),  sort}});
