@@ -5,7 +5,7 @@ Npm.depends({
 
 Package.describe({
 	summary: 'A reactive table designed for Meteor + React',
-	version: '0.1.0',
+	version: '0.1.1',
 	name: 'settlin:reactive-table',
 	git: 'https://github.com/settlin/meteor-monorepo.git'
 });

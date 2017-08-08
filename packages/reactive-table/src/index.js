@@ -47,13 +47,14 @@ if (Meteor.isClient) {
 			_pubs[publication].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + _pubs[publication].publicationId;
 			_pubs[publication].collection = collection;
 		}
-		_pubs[publication].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: _pubs[publication].publicationId, filters, options: {limit: rowsPerPage, skip: rowsPerPage * (page - 1),  sort}});
+		let options = { limit: rowsPerPage, skip: rowsPerPage * (page - 1), sort };
+		_pubs[publication].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: _pubs[publication].publicationId, filters, options});
 		if (onDataChange) {
 			if (!_pubs[publication].subscription.ready()) onDataChange({data: [], loading: true});
 			else {
 				onDataChange({
 					loading: _pubs[publication].subscription.ready(),
-					data: _pubs[publication].collection.find().fetch(),
+					data: _pubs[publication].collection.find(filters, options).fetch(),
 					pages: Math.ceil(Counter.get('count-' + publication + '-' + _pubs[publication].publicationId) / rowsPerPage)
 				});
 			}
