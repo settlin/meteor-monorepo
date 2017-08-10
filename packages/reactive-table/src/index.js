@@ -7,17 +7,28 @@ import PropTypes from 'prop-types';
 
 if (Meteor.isServer) {
 	// publish function
-	ReactiveTable.publish = function(publication, collection, selector = {}, settings = {}) {
-		Meteor.publish('__reactive-table-' + publication, function({publicationId, filters = {}, options = {}}) {
+	ReactiveTable.publish = function (publication, {publishMethod, collection, selector = {}, settings = {}, composite = false}) {
+		if (!publishMethod && !collection) {
+			console.log('ReactiveTable.publish: No publishMethod or collection for: ' + publication); // eslint-disable-line no-console
+			return;			
+		}
+		if (publishMethod && typeof publishMethod !== 'function') {
+			console.log('ReactiveTable.publish: publishMethod is not a function for: ' + publication); // eslint-disable-line no-console
+			return;
+		}
+		composite = publishMethod ? composite : false;
+
+		let metPub = composite ? Meteor.publishComposite : Meteor.publish;
+		metPub('__reactive-table-' + publication, publishMethod || function({publicationId, filters = {}, options = {}}) {
 			check(publicationId, String);
 			check(filters, Object);
-			check(options, {skip: Match.Integer, limit: Match.Integer, sort: Object});
+			check(options, {skip: Match.Integer, limit: Match.Integer, sort: Match.Maybe(Object)});
 
 			if (typeof collection === 'function') collection = collection.call(this);
 			if (typeof selector === 'function') selector = selector.call(this);
 
 			if (!(collection instanceof Mongo.Collection)) {
-				console.log('ReactiveTable.publish: no collection to publish'); // eslint-disable-line no-console
+				console.log('ReactiveTable.publish: no collection to publish for: ' + publication); // eslint-disable-line no-console
 				return [];
 			}
 
@@ -25,9 +36,16 @@ if (Meteor.isServer) {
 			if ((settings || {}).fields) options.fields = settings.fields;
 
 			return [
-				new Counter('count-' + publication + '-' + publicationId, collection.find(filterQuery, {fields: {_id: 1}})),
 				collection.find(filterQuery, options)
 			];
+		});
+		Meteor.publish('__reactive-table-count-' + publication, function ({publicationId, filters = {}, options = {}}) {
+			if (typeof collection === 'function') collection = collection.call(this);
+			if (!(collection instanceof Mongo.Collection)) {
+				console.log('ReactiveTable.publishCount: no collection to publish for: ' + publication); // eslint-disable-line no-console
+				return [];
+			}
+			return new Counter('count-' + publication + '-' + publicationId, collection.find(filters, {fields: {_id: 1}}));
 		});
 	};
 }
@@ -41,7 +59,7 @@ class Table extends React.PureComponent {
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
-	TableContainer = createContainer(({publication, collection, filters, page, rowsPerPage, sort, onDataChange, manual}) => {
+	TableContainer = createContainer(({publication, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
 		if (!_pubs[publication]) {
 			_pubs[publication] = {publicationId: Math.round(Math.random() * 10000000000) + ''}; // 10 digits
 			_pubs[publication].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + _pubs[publication].publicationId;
@@ -49,12 +67,13 @@ if (Meteor.isClient) {
 		}
 		let options = { limit: rowsPerPage, skip: rowsPerPage * (page - 1), sort };
 		_pubs[publication].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: _pubs[publication].publicationId, filters, options});
+		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: _pubs[publication].publicationId, filters});
 		if (onDataChange) {
 			if (!_pubs[publication].subscription.ready()) onDataChange({data: [], loading: true});
 			else {
 				onDataChange({
-					loading: _pubs[publication].subscription.ready(),
-					data: _pubs[publication].collection.find(filters, options).fetch(),
+					loading: false,
+					data: _pubs[publication].collection ? _pubs[publication].collection.find(filters, options).fetch() : [],
 					pages: Math.ceil(Counter.get('count-' + publication + '-' + _pubs[publication].publicationId) / rowsPerPage)
 				});
 			}
@@ -62,29 +81,7 @@ if (Meteor.isClient) {
 		return {};
 	}, Table);
 }
-else TableContainer = Table;
-class TableWrapper extends React.PureComponent {
-	constructor(props) {
-		super(props);
-		const {publication, collection, selector, settings} = props;
-		if (Meteor.isServer) ReactiveTable.publish(publication, collection, selector, settings);
-	}
-	render() {
-		return <TableContainer {...this.props}/>;
-	}
-}
-TableWrapper.propTypes = {
-	filters: PropTypes.object,
-	sort: PropTypes.object,
-	page: PropTypes.number,
-	rowsPerPage: PropTypes.number,
-};
-TableWrapper.defaultProps = {
-	page: 1,
-	rowsPerPage: 10,
-	sort: {},
-};
 
-ReactiveTable.Component = TableWrapper;
+ReactiveTable.Component = TableContainer;
 
 export { ReactiveTable };
