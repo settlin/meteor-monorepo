@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 
 if (Meteor.isServer) {
 	// publish function
-	ReactiveTable.publish = function (publication, {publishMethod, collection, selector = {}, settings = {}, composite = false}) {
+	ReactiveTable.publish = function (publication, {publishMethod, countCursorMethod, collection, selector = {}, settings = {}, composite = false}) {
 		if (!publishMethod && !collection) {
 			console.log('ReactiveTable.publish: No publishMethod or collection for: ' + publication); // eslint-disable-line no-console
 			return;			
@@ -39,13 +39,18 @@ if (Meteor.isServer) {
 				collection.find(filterQuery, options)
 			];
 		});
-		Meteor.publish('__reactive-table-count-' + publication, function ({publicationId, filters = {}, options = {}}) {
+		if (countCursorMethod && typeof countCursorMethod !== 'function') {
+			console.log('ReactiveTable.publish: countCursorMethod is not a function for: ' + publication); // eslint-disable-line no-console
+			return;
+		}
+
+		Meteor.publish('__reactive-table-count-' + publication, function({publicationId, filters = {}, options = {}}) {
 			if (typeof collection === 'function') collection = collection.call(this);
-			if (!(collection instanceof Mongo.Collection)) {
+			if (!countCursorMethod && !(collection instanceof Mongo.Collection)) {
 				console.log('ReactiveTable.publishCount: no collection to publish for: ' + publication); // eslint-disable-line no-console
 				return [];
 			}
-			return new Counter('count-' + publication + '-' + publicationId, collection.find(filters, {fields: {_id: 1}}));
+			return new Counter('count-' + publication + '-' + publicationId, countCursorMethod(filters) || collection.find(filters, {fields: {_id: 1}}));
 		});
 	};
 }
