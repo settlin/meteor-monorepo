@@ -50,7 +50,11 @@ if (Meteor.isServer) {
 				console.log('ReactiveTable.publishCount: no collection to publish for: ' + publication); // eslint-disable-line no-console
 				return [];
 			}
-			return new Counter('count-' + publication + '-' + publicationId, countCursorMethod(filters) || collection.find(filters, {fields: {_id: 1}}));
+			if (countCursorMethod) {
+				let cursor = countCursorMethod(filters);
+				if (!cursor) return [];
+			}
+			return new Counter('count-' + publication + '-' + publicationId, collection.find(filters, {fields: {_id: 1}}));
 		});
 	};
 }
