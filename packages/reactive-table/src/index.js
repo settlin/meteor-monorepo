@@ -52,7 +52,7 @@ if (Meteor.isServer) {
 			}
 			if (countCursorMethod) {
 				let cursor = countCursorMethod(filters);
-				if (!cursor) return [];
+				return cursor || [];
 			}
 			return new Counter('count-' + publication + '-' + publicationId, collection.find(filters, {fields: {_id: 1}}));
 		});
