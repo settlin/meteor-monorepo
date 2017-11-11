@@ -1,5 +1,5 @@
 import React from 'react';
-import { createContainer } from 'meteor/react-meteor-data';
+import { withTracker } from 'meteor/react-meteor-data';
 const ReactiveTable = {};
 
 import { Meteor } from 'meteor/meteor';
@@ -69,7 +69,7 @@ class Table extends React.PureComponent {
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
-	TableContainer = createContainer(({publication, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
+	TableContainer = withTracker(({publication, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
 		if (!_pubs[publication]) {
 			_pubs[publication] = {publicationId: Math.round(Math.random() * 10000000000) + ''}; // 10 digits
 			_pubs[publication].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + _pubs[publication].publicationId;
@@ -89,7 +89,7 @@ if (Meteor.isClient) {
 			}
 		}
 		return {};
-	}, Table);
+	})(Table);
 }
 
 ReactiveTable.Component = TableContainer;
