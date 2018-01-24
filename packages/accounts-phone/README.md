@@ -11,7 +11,7 @@ In a Meteor app directory, enter:
 $ meteor npm install --save libphonenumber-js
 $ meteor add settlin:accounts-phone
 ```
-I have removed `libphonenumber-js` from the dependencies so that the library is not added twice if you also use it in your app. If you don't then anyways it will be loaded once.
+`libphonenumber-js` is used by `Accounts.sanitizePhone()`. I do not include it as a dependency so that if one overwrites the sanitizePhone function, the library is not added in vain.
 
 ## The database
 
@@ -104,6 +104,14 @@ Accounts.createUserWithPhone = function(options) {...};
  * @return {Object} user document
  */
 Accounts.findUserByPhone = function(phone) {...};
+
+/**
+ * @summary Log the user in with a password. Indian phone numbers are accepted without 91. For others, the country code is required. Uses https://github.com/halt-hammerzeit/libphonenumber-js
+ * @locus Server
+ * @param {String}  phone phone number
+ * @return {String} sanitized phone number. Tweaked for Indian numbers, but works for other countries as well.
+ */
+Accounts.sanitizePhone = function(phone) {...};
 ```
 
 ### Client
@@ -118,19 +126,14 @@ Accounts.findUserByPhone = function(phone) {...};
  * @return {Void} null
  */
 Meteor.loginWithPhone = function(options, callback) {...};
-```
 
-### both
-
-```js
 /**
- * @summary Log the user in with a password. Indian phone numbers are accepted without 91. For others, the country code is required. Uses https://github.com/halt-hammerzeit/libphonenumber-js
- * @locus Both
+ * @summary Log the user in with a password. Indian phone numbers are accepted without 91. For others, the country code is required. Uses https://github.com/halt-hammerzeit/libphonenumber-js, as dynamic import
+ * @locus Server
  * @param {String}  phone phone number
  * @return {String} sanitized phone number. Tweaked for Indian numbers, but works for other countries as well.
  */
-
-Accounts.sanitizePhone = function(phone) {...};
+Accounts.sanitizePhone = async function(phone) {...};
 ```
 
 If you need a phone + password login, use https://github.com/okland/accounts-phone.
