@@ -1,6 +1,6 @@
 Package.describe({
 	name: 'settlin:accounts-phone',
-	version: '1.2.0',
+	version: '1.2.1',
     // Brief, one-line summary of the package.
 	summary: 'A login service based on mobile number and otp, For Meteor.',
     // URL to the Git repository containing the source code for this package.
@@ -17,5 +17,4 @@ Package.onUse(function(api) {
 	api.use('ddp', ['client', 'server']);
 	api.addFiles('server.js', 'server');
 	api.addFiles('client.js', 'client');
-	api.addFiles('both.js', ['server', 'client']);
 });
