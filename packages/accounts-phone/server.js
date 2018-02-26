@@ -1,4 +1,4 @@
-import { Mongo } from 'meteor/mongo';
+import {Mongo} from 'meteor/mongo';
 Meteor.otps = new Mongo.Collection('__otps');
 Meteor.otps._ensureIndex({phone: 1, purpose: 1}, {unique: true, name: 'phoneAndPurpose'});
 
@@ -10,11 +10,11 @@ var otpPurpose = '__login__';
 var handleError = (msg, throwError) => {
 	throwError = typeof throwError === 'undefined' ? true : throwError;
 	var error = new Meteor.Error(
-    403,
-    Accounts._options.ambiguousErrorMessages
-      ? 'Login failure. Please check your login credentials.'
-      : msg
-  );
+		403,
+		Accounts._options.ambiguousErrorMessages
+			? 'Login failure. Please check your login credentials.'
+			: msg
+	);
 	if (throwError) {
 		throw error;
 	}
@@ -58,7 +58,7 @@ Accounts.findUserByPhone = function(phone) {
 	check(phone, String);
 	phone = Accounts.sanitizePhone(phone);
 	if (!phone) return null;
-	var users = Meteor.users.find({ 'phones.number': phone }).fetch();
+	var users = Meteor.users.find({phones: {$elemMatch: {number: phone, verified: true}}}).fetch();
 	if (users.length > 1) throw new Meteor.Error(403, 'Multiple users with same phone');
 	return users[0] || null;
 };
@@ -81,16 +81,7 @@ Accounts.registerLoginHandler('phone', function(options) {
 			user._id = user.id;
 			delete user.id;
 		}
-		var otpDoc = Meteor.otps.findOne({phone: options.phone, purpose: otpPurpose});
-		if (!otpDoc) return {userId: user._id, error: handleError('User has no otp set')};
-		if (otpDoc.otp !== options.otp) {
-			return {
-				userId: null,
-				error: new Meteor.Error(403, 'Incorrect password')
-			};
-		}
-
-		Meteor.otps.remove({phone: options.phone, purpose: otpPurpose});
+		else Accounts.verifyPhoneOtp(options.phone, options.otp);
 		return {userId: user._id};
 	}
 	catch (e) {
@@ -112,6 +103,25 @@ Accounts.setPhoneOtp = function(phone, otp) {
 	if (!phone) throw new Meteor.Error(403, 'Improper phone number');
 	Meteor.otps.remove({phone, purpose: otpPurpose});
 	Meteor.otps.insert({phone, otp, purpose: otpPurpose, createdAt: new Date()});
+};
+
+/**
+ * @summary Verify the otp for a user.
+ * @locus Server
+ * @param {String} phone phone number.
+ * @param {String} otp OTP
+ * @returns {String} Sanitized phone number
+ */
+Accounts.verifyPhoneOtp = function(phone, otp) {
+	check([phone, otp], [String]);
+	phone = Accounts.sanitizePhone(phone);
+	if (!phone) throw new Meteor.Error(500, 'Invalid phone number');
+
+	var otpDoc = Meteor.otps.findOne({phone, purpose: otpPurpose});
+	if (!otpDoc) throw new Meteor.Error(403, 'User has no otp set');
+	if (otpDoc.otp !== options.otp) throw new Meteor.Error(403, 'Incorrect otp');
+	Meteor.otps.remove({phone: options.phone, purpose: otpPurpose});
+	return phone;
 };
 
 /**
@@ -171,12 +181,11 @@ Accounts.removePhone = function(userId, phone) {
 //
 // returns the user id
 var createUser = function(options) {
-  // Unknown keys allowed, because a onCreateUserHook can take arbitrary
-  // options.
+	// Unknown keys allowed, because a onCreateUserHook can take arbitrary
+	// options.
 	check(options, {phone: String});
 
-	options.phone = Accounts.sanitizePhone(options.phone);
-	if (!options.phone) throw new Meteor.Error(500, 'Invalid phone number');
+	options.phone = Accounts.verifyPhoneOtp(options.phone, options.otp);
 	var user = {username: options.phone, services: {phone: {number: options.phone}}, phones: [{number: options.phone, verified: true}]};
 
 	var userId = Accounts.insertUserDoc({phone: options.phone}, user);
@@ -191,21 +200,23 @@ var createUser = function(options) {
 };
 
 // method for create user. Requests come from the client.
-Meteor.methods({createUserWithPhone: function(options) {
-	var self = this;
-	return Accounts._loginMethod(self, 'createUser', arguments, 'phone', function() {
-    // createUser() above does more checking.
-		check(options, Object);
-		if (Accounts._options.forbidClientAccountCreation) return {error: new Meteor.Error(403, 'Signups forbidden')};
+Meteor.methods({
+	createUserWithPhone: function(options) {
+		var self = this;
+		return Accounts._loginMethod(self, 'createUser', arguments, 'phone', function() {
+			// createUser() above does more checking.
+			check(options, Object);
+			if (Accounts._options.forbidClientAccountCreation) return {error: new Meteor.Error(403, 'Signups forbidden')};
 
-	  // Create user. result contains id and token.
-		var userId = createUser(options);
-		if (!userId) throw new Meteor.Error(500, 'Failed to insert new user');
+			// Create user. result contains id and token.
+			var userId = createUser(options);
+			if (!userId) throw new Meteor.Error(500, 'Failed to insert new user');
 
-	  // client gets logged in as the new user afterwards.
-		return {userId: userId};
-	});
-}});
+			// client gets logged in as the new user afterwards.
+			return {userId: userId};
+		});
+	}
+});
 
 /**
  * @summary Create a user directly on the server. Unlike the client version, this does not log you in as this user after creation.
