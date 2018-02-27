@@ -77,7 +77,7 @@ Accounts.registerLoginHandler('phone', function(options) {
 		options.phone = Accounts.sanitizePhone(options.phone);
 		var user = Accounts.findUserByPhone(options.phone);
 		if (!user) {
-			user = Meteor.call('createUserWithPhone', {phone: options.phone});
+			user = Meteor.call('createUserWithPhone', {phone: options.phone, otp: options.otp});
 			user._id = user.id;
 			delete user.id;
 		}
@@ -119,8 +119,8 @@ Accounts.verifyPhoneOtp = function(phone, otp) {
 
 	var otpDoc = Meteor.otps.findOne({phone, purpose: otpPurpose});
 	if (!otpDoc) throw new Meteor.Error(403, 'User has no otp set');
-	if (otpDoc.otp !== options.otp) throw new Meteor.Error(403, 'Incorrect otp');
-	Meteor.otps.remove({phone: options.phone, purpose: otpPurpose});
+	if (otpDoc.otp !== otp) throw new Meteor.Error(403, 'Incorrect otp');
+	Meteor.otps.remove({phone: phone, purpose: otpPurpose});
 	return phone;
 };
 
@@ -183,7 +183,7 @@ Accounts.removePhone = function(userId, phone) {
 var createUser = function(options) {
 	// Unknown keys allowed, because a onCreateUserHook can take arbitrary
 	// options.
-	check(options, {phone: String});
+	check(options, {phone: String, otp: String});
 
 	options.phone = Accounts.verifyPhoneOtp(options.phone, options.otp);
 	var user = {username: options.phone, services: {phone: {number: options.phone}}, phones: [{number: options.phone, verified: true}]};
