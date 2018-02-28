@@ -1,9 +1,9 @@
 Package.describe({
 	name: 'settlin:accounts-phone',
-	version: '1.2.1',
-    // Brief, one-line summary of the package.
+	version: '1.2.2',
+	// Brief, one-line summary of the package.
 	summary: 'A login service based on mobile number and otp, For Meteor.',
-    // URL to the Git repository containing the source code for this package.
+	// URL to the Git repository containing the source code for this package.
 	git: 'https://github.com/settlin/meteor-monorepo/tree/master/packages/accounts-phone',
 });
 
