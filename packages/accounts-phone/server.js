@@ -7,13 +7,14 @@ var otpPurpose = '__login__';
 ///
 /// ERROR HANDLER
 ///
-var handleError = (msg, throwError) => {
+var handleError = ({msg, throwError, details}) => {
 	throwError = typeof throwError === 'undefined' ? true : throwError;
 	var error = new Meteor.Error(
 		403,
 		Accounts._options.ambiguousErrorMessages
 			? 'Login failure. Please check your login credentials.'
-			: msg
+			: msg,
+		details
 	);
 	if (throwError) {
 		throw error;
@@ -71,22 +72,27 @@ Accounts.findUserByPhone = function(phone) {
  */
 Accounts.registerLoginHandler('phone', function(options) {
 	if (!options.phone || !options.otp) return undefined; // eslint-disable-line no-undefined
-
+	let verified = false;
 	try {
-		check(options, {phone: String, otp: String});
-		options.phone = Accounts.sanitizePhone(options.phone);
-		var user = Accounts.findUserByPhone(options.phone);
+		check(options, {phone: String, otp: String, purpose: Match.Maybe(String)});
+		let {phone, otp, purpose} = options;
+		phone = Accounts.sanitizePhone(phone);
+
+		var phn = Accounts.verifyPhoneOtp({phone, otp, purpose});
+		if (phn) verified = true;
+
+		var user = Accounts.findUserByPhone(phone);
 		if (!user) {
-			user = Meteor.call('createUserWithPhone', {phone: options.phone, otp: options.otp});
+			user = Meteor.call('createUserWithPhone', {phone, otp});
 			user._id = user.id;
 			delete user.id;
 		}
-		else Accounts.verifyPhoneOtp(options.phone, options.otp);
+		// else Accounts.verifyPhoneOtp(options.phone, options.otp);
 		return {userId: user._id};
 	}
 	catch (e) {
 		console.error('Phone login failed:', e); // eslint-disable-line no-console
-		return {userId: null, error: handleError(e.reason || JSON.stringify(e))};
+		return {userId: null, error: handleError({msg: e.reason || JSON.stringify(e), details: {verified}})};
 	}
 });
 
@@ -112,15 +118,21 @@ Accounts.setPhoneOtp = function(phone, otp) {
  * @param {String} otp OTP
  * @returns {String} Sanitized phone number
  */
-Accounts.verifyPhoneOtp = function(phone, otp) {
-	check([phone, otp], [String]);
+Accounts.verifyPhoneOtp = function({phone, otp, purpose = ''}) {
+	check([phone, otp, purpose], [String]);
+	if (!purpose) purpose = otpPurpose;
 	phone = Accounts.sanitizePhone(phone);
 	if (!phone) throw new Meteor.Error(500, 'Invalid phone number');
 
-	var otpDoc = Meteor.otps.findOne({phone, purpose: otpPurpose});
+	var otpDoc = Meteor.otps.findOne({phone, purpose});
 	if (!otpDoc) throw new Meteor.Error(403, 'User has no otp set');
 	if (otpDoc.otp !== otp) throw new Meteor.Error(403, 'Incorrect otp');
-	Meteor.otps.remove({phone: phone, purpose: otpPurpose});
+
+	//mark exisiting user verified
+	let user = Meteor.users.find({'phones.number': phone}).fetch();
+	if (user.length === 1) Meteor.users.update({'phones.number': phone}, {$set: {'phones.$.verified': true}});
+
+	Meteor.otps.remove({phone: phone, purpose});
 	return phone;
 };
 
@@ -183,15 +195,16 @@ Accounts.removePhone = function(userId, phone) {
 var createUser = function(options) {
 	// Unknown keys allowed, because a onCreateUserHook can take arbitrary
 	// options.
-	check(options, {phone: String, otp: String});
+	check(options, {phone: String, otp: String, purpose: Match.Maybe(String)});
 
-	options.phone = Accounts.verifyPhoneOtp(options.phone, options.otp);
-	var user = {username: options.phone, services: {phone: {number: options.phone}}, phones: [{number: options.phone, verified: true}]};
+	let {phone} = options;
+	var user = {username: phone, services: {phone: {number: phone}}, phones: [{number: phone, verified: true}]};
 
-	var userId = Accounts.insertUserDoc({phone: options.phone}, user);
+	var userId = Accounts.insertUserDoc({phone: phone}, user);
+
 	// Perform another check after insert, in case a matching user has been
 	// inserted in the meantime
-	if (Meteor.users.findOne({_id: {$ne: userId}, 'phones.number': options.phone})) {
+	if (Meteor.users.findOne({_id: {$ne: userId}, 'phones.number': phone})) {
 		// Remove inserted user if the check fails
 		Meteor.users.remove(userId);
 		throw new Meteor.Error(500, 'User exists with given phone number');
@@ -207,6 +220,7 @@ Meteor.methods({
 			// createUser() above does more checking.
 			check(options, Object);
 			if (Accounts._options.forbidClientAccountCreation) return {error: new Meteor.Error(403, 'Signups forbidden')};
+			console.log(options, 'options');
 
 			// Create user. result contains id and token.
 			var userId = createUser(options);
