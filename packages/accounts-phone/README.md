@@ -91,14 +91,6 @@ Accounts.addPhone = function(userId, newPhone, verified) {...};
 Accounts.removePhone = function(userId, phone) {...};
 
 /**
- * @summary Create a user directly on the server. Unlike the client version, this does not log you in as this user after creation.
- * @locus Server
- * @param {Object} options Object with arguments. Needs just {phone: String} for now.
- * @returns {String} userId The newly created user's _id
- */
-Accounts.createUserWithPhone = function(options) {...};
-
-/**
  * @summary finds user by doing a phone number search. Throws error if multiple found.
  * @param {String} phone phone number.
  * @return {Object} user document
