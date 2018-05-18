@@ -67,7 +67,7 @@ Accounts.registerLoginHandler('phone', function(options) {
 	if (!options.phone || !options.otp) return undefined; // eslint-disable-line no-undefined
 	let verified = false;
 	try {
-		check(options, {phone: String, otp: Match.Maybe(String), purpose: Match.Maybe(String)});
+		check(options, {phone: String, otp: String, purpose: Match.Maybe(String)});
 		let {phone, otp, purpose} = options;
 		phone = Accounts.sanitizePhone(phone);
 
