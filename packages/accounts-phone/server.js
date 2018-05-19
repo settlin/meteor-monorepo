@@ -76,9 +76,8 @@ Accounts.registerLoginHandler('phone', function(options) {
 
 		let user = Accounts.findUserByPhone(phone);
 		if (!user) {
-			user = createUser({phone});
-			user._id = user.id;
-			delete user.id;
+			let userId = createUser({phone});
+			return {userId};
 		}
 		return {userId: user._id};
 	}
@@ -202,7 +201,7 @@ const createUser = function(options) {
 		Meteor.users.remove(userId);
 		throw new Meteor.Error(500, 'User exists with given phone number');
 	}
-	return {userId};
+	return userId;
 };
 
 ///
