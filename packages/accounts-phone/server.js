@@ -26,13 +26,13 @@ Accounts.sanitizePhone = function(phone) {
 	check(phone, String);
 	if (!phone) return null;
 
-	let nums = phone.split(/,|;/);
+	const nums = phone.split(/,|;/);
 	for (var i = 0; i < nums.length; i++) {
 		// trim and remove all hyphens, spaces
-		let ph = nums[i].replace(/[^\d^+]/g, '').replace(/^0+/g, '');
+		const ph = nums[i].replace(/[^\d^+]/g, '').replace(/^0+/g, '');
 		if (!ph) continue;
 		const {parse} = require('libphonenumber-js');
-		let res = parse(ph);
+		const res = parse(ph);
 		if (!res.country) continue;
 		return ph;
 	}
@@ -69,14 +69,13 @@ Accounts.registerLoginHandler('phone', function(options) {
 	try {
 		check(options, {phone: String, otp: String, purpose: Match.Maybe(String)});
 		let {phone, otp, purpose} = options;
-		phone = Accounts.sanitizePhone(phone);
 
 		const phn = Accounts.verifyPhoneOtp({phone, otp, purpose});
 		if (phn) verified = true;
 
-		let user = Accounts.findUserByPhone(phone);
+		const user = Accounts.findUserByPhone(phone);
 		if (!user) {
-			let userId = createUser({phone});
+			const userId = createUser({phone});
 			return {userId};
 		}
 		return {userId: user._id};
