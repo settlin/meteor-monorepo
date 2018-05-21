@@ -190,6 +190,7 @@ const createUser = function(options) {
 	const {phone} = options;
 	const user = {username: phone, services: {phone: {number: phone}}, phones: [{number: phone, verified: true}]};
 
+	// here its failing without phone object
 	const userId = Accounts.insertUserDoc({phone: phone}, user);
 	if (!userId) throw new Meteor.Error(500, 'Failed to insert new user');
 
