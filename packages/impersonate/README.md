@@ -12,7 +12,7 @@ Installation
 ------------
 
 ``` sh
-meteor add gwendall:impersonate
+meteor add settlin:impersonate
 ```
 
 DOM helpers
