@@ -69,27 +69,39 @@ class Table extends React.PureComponent {
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
-	TableContainer = withTracker(({publication, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
-		if (!_pubs[publication]) {
-			_pubs[publication] = {publicationId: Math.round(Math.random() * 10000000000) + ''}; // 10 digits
-			_pubs[publication].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + _pubs[publication].publicationId;
-			_pubs[publication].collection = collection;
+	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
+		if (!_pubs[pubId]) {
+			_pubs[pubId] = {};
+			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
+			_pubs[pubId].collection = collection;
 		}
 		let options = { limit: rowsPerPage, skip: rowsPerPage * (page - 1), sort };
-		_pubs[publication].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: _pubs[publication].publicationId, filters, options});
-		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: _pubs[publication].publicationId, filters});
+		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
+		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters});
 		if (onDataChange) {
-			if (!_pubs[publication].subscription.ready()) onDataChange({data: [], loading: true});
+			if (!_pubs[pubId].subscription.ready()) onDataChange({data: [], loading: true});
 			else {
+				const count = Counter.get('count-' + publication + '-' + pubId);
 				onDataChange({
 					loading: false,
-					data: _pubs[publication].collection ? _pubs[publication].collection.find(filters, options).fetch() : [],
-					pages: Math.ceil(Counter.get('count-' + publication + '-' + _pubs[publication].publicationId) / rowsPerPage)
+					data: _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, options).fetch() : [],
+					count, pages: Math.ceil(count / rowsPerPage),
 				});
 			}
 		}
 		return {};
 	})(Table);
+
+	class TableContainerClass extends React.PureComponent {
+		constructor(props) {
+			super(props);
+			this._publicationId = Math.round(Math.random() * 10000000000) + ''; // 10 digits
+		}
+		render() {
+			return <TableWithTracker {...this.props} pubId={this._publicationId}/>;
+		}
+	}
+	TableContainer = TableContainerClass;
 }
 
 ReactiveTable.Component = TableContainer;
