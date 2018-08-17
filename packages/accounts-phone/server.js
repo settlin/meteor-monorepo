@@ -7,10 +7,10 @@ const otpPurpose = '__login__';
 ///
 /// ERROR HANDLER
 ///
-const handleError = ({msg, throwError, details}) => {
+const handleError = ({errCode = 403, msg, throwError, details}) => {
 	throwError = typeof throwError === 'undefined' ? true : throwError;
 	let error = new Meteor.Error(
-		403,
+		errCode,
 		Accounts._options.ambiguousErrorMessages
 			? 'Login failure. Please check your login credentials.'
 			: msg,
@@ -46,14 +46,17 @@ Accounts.sanitizePhone = function(phone) {
 /**
  * @summary finds user by doing a phone number search. Throws error if multiple found.
  * @param {String} phone phone number.
+ * @param {String} expectedUserId the user id which is expected for this phone. It is needed because phone numbers may not be unique, and at times we may need to check if the login is for an expected old user or a new user.
  * @return {Object} user document
  */
-Accounts.findUserByPhone = function(phone) {
+Accounts.findUserByPhone = function(phone, expectedUserId) {
 	check(phone, String);
+	check(expectedUserId, Match.Maybe(String));
 	phone = Accounts.sanitizePhone(phone);
 	if (!phone) return null;
 	const users = Meteor.users.find({phones: {$elemMatch: {number: phone, verified: true}}}).fetch();
 	if (users.length > 1) throw new Meteor.Error(403, 'Multiple users with same phone');
+	if (expectedUserId && users.length && users[0]._id !== expectedUserId) throw new Meteor.Error('unexpected-user', 'Already a user exists with this number.');
 	return users[0] || null;
 };
 
@@ -67,13 +70,13 @@ Accounts.registerLoginHandler('phone', function(options) {
 	if (!options.phone || !options.otp) return undefined; // eslint-disable-line no-undefined
 	let verified = false;
 	try {
-		check(options, {phone: String, otp: String, purpose: Match.Maybe(String)});
-		let {phone, otp, purpose} = options;
+		check(options, {phone: String, otp: String, purpose: Match.Maybe(String), expectedUserId: Match.Maybe(String)});
+		let {phone, otp, purpose, expectedUserId} = options;
 
 		const phn = Accounts.verifyPhoneOtp({phone, otp, purpose});
 		if (phn) verified = true;
 
-		const user = Accounts.findUserByPhone(phone);
+		const user = Accounts.findUserByPhone(phone, expectedUserId);
 		if (!user) {
 			const userId = createUser({phone});
 			return {userId};
@@ -82,7 +85,8 @@ Accounts.registerLoginHandler('phone', function(options) {
 	}
 	catch (e) {
 		console.error('Phone login failed:', e); // eslint-disable-line no-console
-		return {userId: null, error: handleError({msg: e.reason || JSON.stringify(e), details: {verified}})};
+		e.details = e.details || {};
+		return {userId: null, error: handleError({errCode: e.error, msg: e.reason || JSON.stringify(e), details: {...e.details, verified}})};
 	}
 });
 
