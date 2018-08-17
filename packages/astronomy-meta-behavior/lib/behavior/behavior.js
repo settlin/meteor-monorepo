@@ -93,8 +93,8 @@ Behavior.create({
 			user = Meteor.userId();
 		}
     catch (e) {
-	user = '__system__';
-}
+			user = '__system__';
+		}
 
 		if (this.options.hasCreatedByField) {
       // do not update if field already set and user not found
@@ -125,8 +125,8 @@ Behavior.create({
 			user = Meteor.userId();
 		}
     catch (e) {
-	user = '__system__';
-}
+			user = '__system__';
+		}
 
 		if (this.options.hasUpdatedByField) {
       // do not update if field already set and user not found
