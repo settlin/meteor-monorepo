@@ -112,12 +112,16 @@ Accounts.sanitizePhone = function(phone) {...};
 /**
  * @summary Log the user in with a password.
  * @locus Client
- * @param {Object} options phone and otp
+ * @param {Object} options phone, otp and optional expectedUserId
  * @param {Function} [callback] Optional callback. Called with no arguments on success,
  *      or with a single `Error` argument on failure.
  * @return {Void} null
  */
-Meteor.loginWithPhone = function(options, callback) {...};
+Meteor.loginWithPhone = function({
+	phone,
+	otp,
+	expectedUserId // optional. the user id which is expected for this phone. It is needed because phone numbers may not be unique, and at times we may need to check if the login is for an expected old user or a new user.
+}, callback) {...};
 
 /**
  * @summary Log the user in with a password. Indian phone numbers are accepted without 91. For others, the country code is required. Uses https://github.com/halt-hammerzeit/libphonenumber-js, as dynamic import

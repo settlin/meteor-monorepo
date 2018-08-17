@@ -35,13 +35,13 @@ Accounts.sanitizePhone = async function(phone) {
 /**
  * @summary Log the user in with a password.
  * @locus Client
- * @param {Object} options phone and otp
+ * @param {Object} options phone, otp and optional expectedUserId
  * @param {Function} [callback] Optional callback. Called with no arguments on success,
  *      or with a single `Error` argument on failure.
  * @return {Void} null
  */
 Meteor.loginWithPhone = async function(options, callback) {
-	check(options, {phone: String, otp: String, purpose: Match.Maybe(String)});
+	check(options, {phone: String, otp: String, purpose: Match.Maybe(String), expectedUserId: Match.Maybe(String)});
 
 	options.phone = await Accounts.sanitizePhone(options.phone);
 	if (!options.phone) {
