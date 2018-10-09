@@ -75,7 +75,7 @@ if (Meteor.isClient) {
 			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
 			_pubs[pubId].collection = collection;
 		}
-		let options = { limit: rowsPerPage, skip: rowsPerPage * (page - 1), sort };
+		let options = { sort };
 		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
 		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters});
 		if (onDataChange) {
