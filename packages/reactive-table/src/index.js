@@ -22,6 +22,8 @@ if (Meteor.isServer) {
 		metPub('__reactive-table-' + publication, publishMethod || function({publicationId, filters = {}, options = {}}) {
 			check(publicationId, String);
 			check(filters, Object);
+			options.skip = options.skip || 0;
+			options.limit = options.limit || 10;
 			check(options, {skip: Match.Integer, limit: Match.Integer, sort: Match.Maybe(Object)});
 
 			if (typeof collection === 'function') collection = collection.call(this);
