@@ -22,8 +22,6 @@ if (Meteor.isServer) {
 		metPub('__reactive-table-' + publication, publishMethod || function({publicationId, filters = {}, options = {}}) {
 			check(publicationId, String);
 			check(filters, Object);
-			options.skip = options.skip || 0;
-			options.limit = options.limit || 10;
 			check(options, {skip: Match.Integer, limit: Match.Integer, sort: Match.Maybe(Object)});
 
 			if (typeof collection === 'function') collection = collection.call(this);
@@ -77,6 +75,7 @@ if (Meteor.isClient) {
 			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
 			_pubs[pubId].collection = collection;
 		}
+		if (isNaN(page)) page = 1;
 		const options = {limit: rowsPerPage, skip: rowsPerPage * (page - 1), sort};
 		const clientOptions = {sort};
 		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
