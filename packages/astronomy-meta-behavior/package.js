@@ -1,6 +1,6 @@
 Package.describe({
 	name: 'settlin:astronomy-meta-behavior',
-	version: '2.0.7',
+	version: '2.0.8',
 	summary: 'Meta behavior for Meteor Astronomy',
 	git: 'https://github.com/settlin/meteor-monorepo.git'
 });
@@ -14,5 +14,5 @@ Package.onUse(function(api) {
 		'jagi:astronomy@2.0.0'
 	], ['client', 'server']);
 
-	api.mainModule('lib/main.js', ['client', 'server']);
+	api.mainModule('lib/main.js', ['client', 'server'], {lazy: true});
 });
