@@ -1,8 +1,3 @@
-```diff
-- NOTE: This package is not maintained anymore.
-- If you want to help, please reach out to gwendall.esnault@gmail.com
-```
-
 Meteor Impersonate
 ================
 
@@ -10,36 +5,13 @@ Let admins impersonate other users
 
 Installation
 ------------
+Meteor Impersonate
+================
+
+Forked from https://github.com/gwendall/meteor-impersonate
 
 ``` sh
 meteor add settlin:impersonate
-```
-
-DOM helpers
------------
-
-**Impersonate**  
-Set a [data-impersonate] attribute with the id of the user to impersonate on a DOM element.
-``` html
-<button data-impersonate="{{someUser._id}}">Click to impersonate</button>
-```
-
-**Un-impersonate**  
-Set a [data-unimpersonate] attribute to a DOM element.
-``` html
-<button data-unimpersonate>Click to unimpersonate</button>
-```
-
-UI helpers
-----------
-
-**isImpersonating**  
-``` html
-{{#if isImpersonating}}
-  <button data-unimpersonate>Click to unimpersonate</button>
-{{else}}
-  <button data-impersonate="{{_id}}">Click to impersonate</button>
-{{/if}}
 ```
 
 Client Methods
