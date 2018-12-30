@@ -41,7 +41,7 @@ Accounts.sanitizePhone = async function(phone) {
  * @return {Void} null
  */
 Meteor.loginWithPhone = async function(options, callback) {
-	check(options, {phone: String, otp: String, purpose: Match.Maybe(String), expectedUserId: Match.Maybe(String)});
+	check(options, {phone: String, otp: String, purpose: Match.Maybe(String), expectedUserId: Match.Optional(Match.Maybe(String))});
 
 	options.phone = await Accounts.sanitizePhone(options.phone);
 	if (!options.phone) {

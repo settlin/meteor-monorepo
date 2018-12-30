@@ -70,7 +70,7 @@ Accounts.registerLoginHandler('phone', function(options) {
 	if (!options.phone || !options.otp) return undefined; // eslint-disable-line no-undefined
 	let verified = false;
 	try {
-		check(options, {phone: String, otp: String, purpose: Match.Maybe(String), expectedUserId: Match.Maybe(String)});
+		check(options, {phone: String, otp: String, purpose: Match.Maybe(String), expectedUserId: Match.Optional(Match.Maybe(String))});
 		let {phone, otp, purpose, expectedUserId} = options;
 
 		const phn = Accounts.verifyPhoneOtp({phone, otp, purpose});
