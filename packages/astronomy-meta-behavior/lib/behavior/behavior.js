@@ -93,18 +93,18 @@ Behavior.create({
 			user = Meteor.userId();
 		}
     catch (e) {
-			user = '__system__';
+			user = '_'; // default system user
 		}
 
 		if (this.options.hasCreatedByField) {
       // do not update if field already set and user not found
-			if ((!user || user === '__system__') && doc[this.options.createdByFieldName]) return;
+			if ((!user || user === '_') && doc[this.options.createdByFieldName]) return;
 			doc[this.options.createdByFieldName] = user;
 		}
 
 		if (this.options.hasUpdatedByField) {
       // do not update if field already set and user not found
-			if ((!user || user === '__system__') && doc[this.options.updatedByFieldName]) return;
+			if ((!user || user === '_') && doc[this.options.updatedByFieldName]) return;
 			doc[this.options.updatedByFieldName] = user;
 		}
 	},
@@ -125,12 +125,12 @@ Behavior.create({
 			user = Meteor.userId();
 		}
     catch (e) {
-			user = '__system__';
+			user = '_';
 		}
 
 		if (this.options.hasUpdatedByField) {
       // do not update if field already set and user not found
-			if ((!user || user === '__system__') && doc[this.options.updatedByFieldName]) return;
+			if ((!user || user === '_') && doc[this.options.updatedByFieldName]) return;
 			doc[this.options.updatedByFieldName] = user;
 		}
 	}

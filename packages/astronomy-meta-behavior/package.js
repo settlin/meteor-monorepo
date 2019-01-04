@@ -1,6 +1,6 @@
 Package.describe({
 	name: 'settlin:astronomy-meta-behavior',
-	version: '2.0.8',
+	version: '3.0.0',
 	summary: 'Meta behavior for Meteor Astronomy',
 	git: 'https://github.com/settlin/meteor-monorepo.git'
 });
