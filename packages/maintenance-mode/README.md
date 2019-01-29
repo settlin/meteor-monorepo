@@ -24,7 +24,7 @@ A simple package to enable maintenance mode for your app. For Meteor 1.3+, as it
 In a startup file for both server and client, include the following
 
 ```js
-import { Maintenance } from 'meteor/settlin:meteor-maintenance-mode';
+import { Maintenance } from 'meteor/settlin:maintenance-mode';
 
 let allowedUserIds = [id1, id2];
 // required, so that you can login to your app, open up the console
