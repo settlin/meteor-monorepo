@@ -84,7 +84,6 @@ Accounts.registerLoginHandler('phone', function(options) {
 		return {userId: user._id};
 	}
 	catch (e) {
-		console.error('Phone login failed:', e); // eslint-disable-line no-console
 		e.details = e.details || {};
 		return {userId: null, error: handleError({errCode: e.error, msg: e.reason || JSON.stringify(e), details: {...e.details, verified}})};
 	}
