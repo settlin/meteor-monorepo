@@ -14,5 +14,5 @@ Package.onUse(function(api) {
 		'jagi:astronomy@2.0.0'
 	], ['server']);
 
-	api.mainModule('lib/main.js', ['server'], {lazy: true});
+	api.mainModule('lib/main.js', ['server']);
 });
