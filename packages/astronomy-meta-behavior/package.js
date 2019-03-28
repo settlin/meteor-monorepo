@@ -12,7 +12,7 @@ Package.onUse(function(api) {
 		'ecmascript',
 		'es5-shim',
 		'jagi:astronomy@2.0.0'
-	], ['client', 'server']);
+	], ['server']);
 
-	api.mainModule('lib/main.js', ['client', 'server'], {lazy: true});
+	api.mainModule('lib/main.js', ['server'], {lazy: true});
 });
