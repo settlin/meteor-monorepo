@@ -2,12 +2,11 @@
   "name": "test",
   "private": true,
   "scripts": {
-    "start": "meteor run",
-    "storybook": "start-storybook -p 6006",
+    "start": "meteor --port 4000",
+    "storybook": "start-storybook -p 4006",
     "build-storybook": "build-storybook"
   },
   "dependencies": {
-    "babel-runtime": "^6.20.0",
     "meteor-node-stubs": "~0.2.4",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
@@ -15,6 +14,7 @@
     "react-table": "^6.8.5"
   },
   "devDependencies": {
+    "@babel/runtime": "^7.4.3",
     "babel-eslint": "^8.2.2",
     "eslint": "^4.18.1"
   }
