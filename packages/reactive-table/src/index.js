@@ -71,6 +71,7 @@ class Table extends React.PureComponent {
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
+	let prevLoading = false, prevCount, prevData, prevPages;
 	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
 		if (!_pubs[pubId]) {
 			_pubs[pubId] = {};
@@ -80,18 +81,23 @@ if (Meteor.isClient) {
 		if (isNaN(page)) page = 1;
 		const options = {limit: rowsPerPage, skip: Math.min(0, rowsPerPage * (page - 1)), sort};
 		const clientOptions = {sort};
-		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
-		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters});
+		_pubs[pubId].subscription = [
+			Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options}),
+			Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters}),
+		];
 		if (onDataChange) {
-			if (!_pubs[pubId].subscription.ready()) onDataChange({data: [], loading: true});
-			else {
-				const count = Counter.get('count-' + publication + '-' + pubId);
-				onDataChange({
-					loading: false,
-					data: _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : [],
-					count, pages: Math.ceil(count / rowsPerPage),
-				});
-			}
+			const loading = _pubs[pubId].subscription.some(handle => !handle.ready());
+			const count = Counter.get('count-' + publication + '-' + pubId);
+			const data = _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : [];
+			const pages = Math.ceil(count / rowsPerPage);
+
+			if (JSON.stringify(prevData) === JSON.stringify(data) && JSON.stringify(prevCount) === JSON.stringify(count) && JSON.stringify(prevPages) === JSON.stringify(pages)) return {};
+
+			prevLoading = loading;
+			prevCount = count;
+			prevData = data;
+			prevPages = pages;
+			onDataChange({loading: false, data, count, pages});
 		}
 		return {};
 	})(Table);
