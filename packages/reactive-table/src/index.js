@@ -65,14 +65,14 @@ if (Meteor.isServer) {
 // Table components
 class Table extends React.PureComponent {
 	render() {
-		return <div>{this.props.children}</div>;
+		return this.props.children;
 	}
 }
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
 	let prevLoading = false, prevCount, prevData, prevPages;
-	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
+	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, getData, manual}) => {
 		if (!_pubs[pubId]) {
 			_pubs[pubId] = {};
 			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
@@ -86,12 +86,17 @@ if (Meteor.isClient) {
 			Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters}),
 		];
 		if (onDataChange) {
-			const loading = _pubs[pubId].subscription.some(handle => !handle.ready());
+			const loading = _pubs[pubId].subscription.some(h => h.ready());
 			const count = Counter.get('count-' + publication + '-' + pubId);
-			const data = _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : [];
+			const data = _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : (getData && getData()) || [];
 			const pages = Math.ceil(count / rowsPerPage);
 
-			if (JSON.stringify(prevData) === JSON.stringify(data) && JSON.stringify(prevCount) === JSON.stringify(count) && JSON.stringify(prevPages) === JSON.stringify(pages)) return {};
+			const js = JSON.stringify;
+			if (js(prevData) === js(data)
+				&& js(prevCount) === js(count)
+				&& js(prevPages) === js(pages)
+				&& js(prevLoading) === js(loading)
+			) return {};
 
 			prevLoading = loading;
 			prevCount = count;
