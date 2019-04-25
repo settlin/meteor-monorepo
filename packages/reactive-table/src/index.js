@@ -72,14 +72,14 @@ let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
 	let prevLoading = false, prevCount, prevData, prevPages;
-	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, getData, manual}) => {
+	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 0, rowsPerPage = 10, sort = {}, onDataChange, getData, manual}) => {
 		if (!_pubs[pubId]) {
 			_pubs[pubId] = {};
 			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
 			_pubs[pubId].collection = collection;
 		}
-		if (isNaN(page)) page = 1;
-		const options = {limit: rowsPerPage, skip: Math.min(0, rowsPerPage * (page - 1)), sort};
+		if (isNaN(page)) page = 0;
+		const options = {limit: rowsPerPage, skip: Math.min(rowsPerPage * page), sort};
 		const clientOptions = {sort};
 		_pubs[pubId].subscription = [
 			Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options}),
