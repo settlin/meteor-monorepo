@@ -1,6 +1,6 @@
 Package.describe({
 	summary: 'A reactive table designed for Meteor + React',
-	version: '1.1.7',
+	version: '2.0.0',
 	name: 'settlin:reactive-table',
 	git: 'https://github.com/settlin/meteor-monorepo.git'
 });
