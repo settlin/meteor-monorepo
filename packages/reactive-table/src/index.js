@@ -65,34 +65,48 @@ if (Meteor.isServer) {
 // Table components
 class Table extends React.PureComponent {
 	render() {
-		return <div>{this.props.children}</div>;
+		return this.props.children;
 	}
 }
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
-	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
+	let prevLoading = false, prevCount, prevData, prevPages;
+  
+	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 0, rowsPerPage = 10, sort = {}, onDataChange, getData, manual}) => {
 		if (!_pubs[pubId]) {
 			_pubs[pubId] = {};
 			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
 			_pubs[pubId].collection = collection;
 		}
-		if (isNaN(page)) page = 1;
-		const options = {limit: rowsPerPage, skip: Math.min(0, rowsPerPage * (page - 1)), sort};
+		if (isNaN(page) || page < 0) page = 0;
+		const options = {limit: rowsPerPage, skip: rowsPerPage * page, sort};
 		const clientOptions = {sort};
-		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
-		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters});
-		if (onDataChange) {
-			if (!_pubs[pubId].subscription.ready()) onDataChange({data: [], loading: true});
-			else {
-				const count = Counter.get('count-' + publication + '-' + pubId);
-				onDataChange({
-					loading: false,
-					data: _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : [],
-					count, pages: Math.ceil(count / rowsPerPage),
-				});
-			}
-		}
+		_pubs[pubId].subscription = [
+			Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options}),
+			Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters}),
+		];
+
+    if (onDataChange) {
+      const loading = _pubs[pubId].subscription.some(h => h.ready());
+
+      const count = Counter.get('count-' + publication + '-' + pubId);
+      const data = _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : getData && getData() || [];
+      const pages = Math.ceil(count / rowsPerPage);
+      const js = JSON.stringify;
+      if (js(prevData) === js(data) && js(prevCount) === js(count) && js(prevPages) === js(pages) && js(prevLoading) === js(loading)) return {};
+      prevLoading = loading;
+      prevCount = count;
+      prevData = data;
+      prevPages = pages;
+      onDataChange({
+        loading: false,
+        data,
+        count,
+        pages
+      });
+    }
+
 		return {};
 	})(Table);
 
