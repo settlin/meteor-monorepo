@@ -12,7 +12,7 @@ if (Meteor.isServer) {
 	ReactiveTable.publish = function (publication, {publishMethod, countCursorMethod, collection, selector = {}, settings = {}, composite = false}) {
 		if (!publishMethod && !collection) {
 			console.log('ReactiveTable.publish: No publishMethod or collection for: ' + publication); // eslint-disable-line no-console
-			return;			
+			return;
 		}
 		if (publishMethod && typeof publishMethod !== 'function') {
 			console.log('ReactiveTable.publish: publishMethod is not a function for: ' + publication); // eslint-disable-line no-console
@@ -65,44 +65,33 @@ if (Meteor.isServer) {
 // Table components
 class Table extends React.PureComponent {
 	render() {
-		return this.props.children;
+		return <div>{this.props.children}</div>;
 	}
 }
 let TableContainer;
 let _pubs = {};
 if (Meteor.isClient) {
-	let prevLoading = false, prevCount, prevData, prevPages;
-	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 0, rowsPerPage = 10, sort = {}, onDataChange, getData, manual}) => {
+	TableWithTracker = withTracker(({publication, pubId, collection, filters = {}, page = 1, rowsPerPage = 10, sort = {}, onDataChange, manual}) => {
 		if (!_pubs[pubId]) {
 			_pubs[pubId] = {};
 			_pubs[pubId].name = manual ? publication : 'reactive-table-rows-' + publication + '-' + pubId;
 			_pubs[pubId].collection = collection;
 		}
-		if (isNaN(page)) page = 0;
-		const options = {limit: rowsPerPage, skip: Math.min(rowsPerPage * page), sort};
+		if (isNaN(page)) page = 1;
+		const options = {limit: rowsPerPage, skip: Math.min(rowsPerPage * (page - 1)), sort};
 		const clientOptions = {sort};
-		_pubs[pubId].subscription = [
-			Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options}),
-			Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters}),
-		];
+		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
+		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters});
 		if (onDataChange) {
-			const loading = _pubs[pubId].subscription.some(h => h.ready());
-			const count = Counter.get('count-' + publication + '-' + pubId);
-			const data = _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : (getData && getData()) || [];
-			const pages = Math.ceil(count / rowsPerPage);
-
-			const js = JSON.stringify;
-			if (js(prevData) === js(data)
-				&& js(prevCount) === js(count)
-				&& js(prevPages) === js(pages)
-				&& js(prevLoading) === js(loading)
-			) return {};
-
-			prevLoading = loading;
-			prevCount = count;
-			prevData = data;
-			prevPages = pages;
-			onDataChange({loading: false, data, count, pages});
+			if (!_pubs[pubId].subscription.ready()) onDataChange({data: [], loading: true});
+			else {
+				const count = Counter.get('count-' + publication + '-' + pubId);
+				onDataChange({
+					loading: false,
+					data: _pubs[pubId].collection ? _pubs[pubId].collection.find(filters, clientOptions).fetch() : [],
+					count, pages: Math.ceil(count / rowsPerPage),
+				});
+			}
 		}
 		return {};
 	})(Table);
