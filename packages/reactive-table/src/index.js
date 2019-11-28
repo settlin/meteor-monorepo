@@ -12,7 +12,7 @@ if (Meteor.isServer) {
 	ReactiveTable.publish = function (publication, {publishMethod, countCursorMethod, collection, selector = {}, settings = {}, composite = false}) {
 		if (!publishMethod && !collection) {
 			console.log('ReactiveTable.publish: No publishMethod or collection for: ' + publication); // eslint-disable-line no-console
-			return;
+			return;			
 		}
 		if (publishMethod && typeof publishMethod !== 'function') {
 			console.log('ReactiveTable.publish: publishMethod is not a function for: ' + publication); // eslint-disable-line no-console
@@ -78,7 +78,7 @@ if (Meteor.isClient) {
 			_pubs[pubId].collection = collection;
 		}
 		if (isNaN(page)) page = 1;
-		const options = {limit: rowsPerPage, skip: Math.min(rowsPerPage * (page - 1)), sort};
+		const options = {limit: rowsPerPage, skip: Math.min(0, rowsPerPage * (page - 1)), sort};
 		const clientOptions = {sort};
 		_pubs[pubId].subscription = Meteor.subscribe('__reactive-table-' + publication, {publicationId: pubId, filters, options});
 		Meteor.subscribe('__reactive-table-count-' + publication, {publicationId: pubId, filters});
