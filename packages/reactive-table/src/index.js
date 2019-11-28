@@ -1,9 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import { checkNpmVersions } from 'meteor/tmeasday:check-npm-versions';
-
-checkNpmVersions({
-	react: '15.3 - 17',
-}, 'settlin:reactive-table');
 
 // If you are using the dependency in the same file, you'll need to use require, otherwise
 // you can continue to `import` in another file.
