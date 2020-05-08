@@ -24,23 +24,18 @@ Use a simple Meteor method,
 function sendOtpViaSms(otp) {.....} // the function through which you send sms
 
 Meteor.methods({
-	sendOtpForLogin: function(to) {
+	// to 
+	sendOtpForLogin: function(toPhone) {
 		if (Meteor.isClient) return null;
 
 		// otp must be generated on the server and never revealed to the client
-		check(to, String);
-
-		let user = Meteor.users.findOne({'phones.number': to});
-
-		// if there is no user with the given phone number, we create a new one.
-		// Accounts.createUser is available only on the server and creates a new user with two fields: `phones` and `services`. It ensures that the phone numbers are always unique for users.
-		if (!user) user = {_id: Accounts.createUserWithPhone({phone: to})};
+		check(toPhone, String);
 
 		// send otp as sms
 		let otp = Math.round(Random.fraction() * 100000);
 
 		// Accounts.setPhoneOtp sets the otp in the `__otps` collection: {phone, otp, purpose: '__login__'}.
-		Accounts.setPhoneOtp(user._id, otp);
+		Accounts.setPhoneOtp(toPhone, otp);
 	},
 });
 ```
