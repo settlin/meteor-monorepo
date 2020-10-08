@@ -6,7 +6,7 @@ export class SSRClientHelper{
     static processData = () => {
         const injectedData = document.getElementById('injected-data');
         if (injectedData) {
-            console.log('SSR data detected, processing data..');
+            // console.log('SSR data detected, processing data..');
             const data = injectedData.innerHTML;
             if (data) {
                 const SSRObj = JSON.parse(decodeURIComponent(data));

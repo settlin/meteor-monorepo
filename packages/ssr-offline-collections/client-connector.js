@@ -91,7 +91,7 @@ export const createConnector = ({ name, collection, validate, query, single = fa
     return useTracker(() => {
       validate(args)
       return [run(args), isLoading]
-    }, [isLoading, ...Object.values(args)])
+    }, [isLoading, JSON.stringify(args)])
   }
 }
 
@@ -133,16 +133,17 @@ const is = (x, y) =>
   (x === y && (x !== 0 || 1 / x === 1 / y)) || (x !== x && y !== y) // eslint-disable-line no-self-compare
 
 const isArgsEqual = (nextDeps, prevDeps) => {
-  if (!nextDeps || !prevDeps) {
-    return false
+	if (!nextDeps || !prevDeps) {
+		return false
   }
   const len = nextDeps.length
   if (prevDeps.length !== len) {
-    return false
-  }
+		return false
+	}
+	if (JSON.stringify(nextDeps) === JSON.stringify(prevDeps)) return true;
   for (let i = 0; i < len; i++) {
-    if (!is(nextDeps[i], prevDeps[i])) {
-      return false
+		if (!is(nextDeps[i], prevDeps[i])) {
+			return false
     }
   }
   return true

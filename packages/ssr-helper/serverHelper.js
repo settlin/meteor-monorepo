@@ -107,8 +107,8 @@ export class SSRServerHelper {
     dataMap.forEach((value, key) => {
       SSRObj[key] = value;
     });
-    console.info("SSRServerHelper - injecting SSR data:");
-    console.info(SSRObj);
+    // console.info("SSRServerHelper - injecting SSR data:");
+    // console.info(SSRObj);
     const encodedData = encodeURIComponent(JSON.stringify(SSRObj));
     this.sink.appendToBody(
       `<script type="text/injected-data" id='injected-data'}>${encodedData}</script>`

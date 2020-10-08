@@ -1,7 +1,8 @@
 /* global check, ValidatedMethod */
 
-export const makePagedRun = (collection, query) => ({ limit = 5, offset = 0, order = -1, orderBy = 'createdAt', ...rest }) => (
+export const makePagedRun = (collection, query) => ({ limit = 5, offset = 0, order = -1, orderBy = 'createdAt', fields, ...rest }) => (
   collection.find(query(rest), {
+		fields,
     limit,
     skip: offset,
     sort: {
@@ -10,8 +11,8 @@ export const makePagedRun = (collection, query) => ({ limit = 5, offset = 0, ord
   }).fetch()
 )
 
-export const makeSingleRun = (collection, query) => (args) => (
-  collection.findOne(query(args))
+export const makeSingleRun = (collection, query) => ({ limit = 5, offset = 0, order = -1, orderBy = 'createdAt', fields, ...rest }) => (
+  collection.findOne(query(rest), {fields})
 )
 
 export const makeDataMethod = (name, validate, run) => new ValidatedMethod({
