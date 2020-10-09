@@ -1,5 +1,11 @@
 ## SSR Helper
 
+### Notes
+This is a fork of `alawi:ssr-helper` with minor tweaks.
+1. Bugfixes
+2. Fields to be published are taken from Meteor.settings.userFields
+
+
 This pacakge aims to simplify Meteor's server rendering process. Specifically:
 
 1. **Make Meteor.User() works during server rendering**, accessing ```Meteor.user()``` during Meteor server rendering process will result in
@@ -12,7 +18,7 @@ this is because the Meteor DDP session has not been instaniated yet. However, it
 ## Installation 
 
 ```bash
-$ meteor add alawi:ssr-helper
+$ meteor add settlin:ssr-helper
 ```
 
 ## Usage
@@ -20,7 +26,7 @@ $ meteor add alawi:ssr-helper
 **Server:**
 
 ```js
-import { SSRServerHelper } from 'meteor/alawi:ssr-helper';
+import { SSRServerHelper } from 'meteor/settlin:ssr-helper';
 
 onPageLoad(async sink => {
     

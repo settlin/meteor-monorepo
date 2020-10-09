@@ -1,10 +1,18 @@
 ground:db
 ==========
 
+Notes
+-----
+This is a fork of `ground:db` with minor tweaks.
+1. Remove raix:events
+
 [![Build Status](https://travis-ci.org/GroundMeteor/db.png?branch=grounddb-caching-2016)](https://travis-ci.org/GroundMeteor/db)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 GroundDB is a fast and thin layer providing Meteor offline database - Taking cloud data to the ground.
+
+## Features
+`meteor add settlin:ground-db`
 
 ## Features
 This version of GroundDB is a caching only storage - meaning it does not support resuming of method calls/cross tab updates etc. But it's faster and async supporting local storages like:
