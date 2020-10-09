@@ -3,7 +3,6 @@ import { WebApp } from "meteor/webapp";
 import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import cookieParser from "cookie-parser";
-console.log(cookieParser())
 
 // This method will be patch Meteor.user() to return
 // the user with login token inferred using the cookie
@@ -20,7 +19,8 @@ WebApp.connectHandlers.use(function(req, res, next) {
     const promise = new Promise(async resolve => {
       // Use the cookie if found to fetch the user
       const ssrHelper = new SSRServerHelper({ request: req });
-      const user = await ssrHelper.getUser();
+			const user = await ssrHelper.getUser(Meteor.settings.userFields);
+			delete user.services.resume;
       resolve(user);
     });
     promise.then(user => {
@@ -61,7 +61,7 @@ export class SSRServerHelper {
    * @param injectUser - setItem('user', userDoc) to be fetched by client
    * @returns {Promise<null>}
    */
-  getUser = async () => {
+  getUser = async (fields = {username: 1, 'emails.address': 1, 'phones.number': 1, 'profile.name': 1}) => {
     if (!this.sink) {
       console.error("sink object is null");
     } else {
@@ -70,9 +70,7 @@ export class SSRServerHelper {
       if (loginToken) {
         check(loginToken, String);
         const hashedToken = Accounts._hashLoginToken(loginToken);
-        const user = await Meteor.users.rawCollection().findOne({
-          "services.resume.loginTokens.hashedToken": hashedToken
-        });
+        const user = await Meteor.users.rawCollection().findOne({"services.resume.loginTokens.hashedToken": hashedToken}, {fields: {...fields, 'services.resume.loginTokens': 1}});
 
         if (user) {
           // find the right login token corresponding, the current user may have
