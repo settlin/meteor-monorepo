@@ -18,7 +18,25 @@ export class SSRClientHelper{
             }
         }
     }
-    /**
+		
+		/**
+     * Clears the data injected by the SSRServerHelper
+     * @param key
+     * @returns {any}
+     */
+    static clearData = (key) => {
+			if (!key) {
+				window.sessionStorage.setItem('SSRData', '');
+				return;
+			}
+			const SSRObj = window.sessionStorage.getItem('SSRData');
+			if (!SSRObj) return null;
+			const newObj = JSON.parse(SSRObj);
+			delete newObj[key];
+      window.sessionStorage.setItem('SSRData', JSON.stringify(newObj));
+    }
+
+		/**
      *  Get an object of all the SSRed data
      * @returns {*}
      */
