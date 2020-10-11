@@ -20,7 +20,7 @@ WebApp.connectHandlers.use(function(req, res, next) {
       // Use the cookie if found to fetch the user
       const ssrHelper = new SSRServerHelper({ request: req });
 			const user = await ssrHelper.getUser(Meteor.settings.userFields);
-			delete user.services.resume;
+			if (user) delete user.services.resume;
       resolve(user);
     });
     promise.then(user => {
@@ -97,7 +97,7 @@ export class SSRServerHelper {
       const user = Meteor.user();
       // Remove user services for security and performance
       if (user) {
-        delete user.services;
+        delete user.services.resume;
       }
       dataMap.set("user", user);
     }
