@@ -1,6 +1,6 @@
 Package.describe({
   name: "settlin:ssr-helper",
-  version: "0.0.5",
+  version: "0.0.6",
   summary: "Meteor Server Render Helper Functions",
   git: "https://github.com/aliogaili/ssr-helper",
   documentation: "README.md"
