@@ -4,7 +4,7 @@ import { Accounts } from "meteor/accounts-base";
 import { check } from "meteor/check";
 import cookieParser from "cookie-parser";
 
-// This method will be patch Meteor.user() to return
+// This method will be patch Meteor.ssrUser() to return
 // the user with login token inferred using the cookie
 // in the request. The patch only happens on http request
 // and when invoked outside methods or publications.
@@ -26,7 +26,7 @@ WebApp.connectHandlers.use(function(req, res, next) {
     promise.then(user => {
       // Patch meteor user method to return the
       // SSRed user.
-      Meteor.user = () => {
+      Meteor.ssrUser = () => {
         // Add a flag to indicate that this is an
         // SSRed user as oppose to a DDP connection user.
         if (user) {
@@ -34,7 +34,7 @@ WebApp.connectHandlers.use(function(req, res, next) {
         }
         return user;
       };
-      Meteor.userId = () => {
+      Meteor.ssrUserId = () => {
         return (user || {})._id;
       };
       next();
@@ -94,7 +94,7 @@ export class SSRServerHelper {
     const dataMap = this.dataMap;
     // Inject the user object
     if (injectUser && !dataMap["user"]) {
-      const user = Meteor.user();
+      const user = Meteor.ssrUser();
       // Remove user services for security and performance
       if (user) {
         delete user.services.resume;
