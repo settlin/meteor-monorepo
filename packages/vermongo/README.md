@@ -8,10 +8,10 @@ Forked from
 https://github.com/micktaiwan/meteor-vermongo/
 
 AtmosphereJS:
-https://atmospherejs.com/mickaelfm/vermongo
+https://atmospherejs.com/settlin/vermongo
 
 Report bugs or suggestions:
-https://github.com/micktaiwan/meteor-vermongo/issues
+https://github.com/settlin/monorepo/issues
 
 ## Currently provides
 
@@ -77,6 +77,7 @@ https://github.com/micktaiwan/meteor-vermongo/issues
 ```
 
 A new collection *"mycollection.vermongo"* will be created for each versioned collection and will store old document versions.
+You can change the name of the collection by passing a `collectionName` option to the vermongo function.
 
 A collection helper *"versions"* is created to access old versions of the document.
 
