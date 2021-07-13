@@ -1,13 +1,13 @@
 Package.describe({
   name: 'settlin:vermongo',
-  version: '2.0.3',
+  version: '2.0.4',
   summary: 'Add versions to your documents. Implementing vermongo. Automatic versioning of collection documents',
   git: 'https://github.com/settlin/monorepo.git',
   documentation: 'README.md'
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('METEOR@1.4');
+	api.versionsFrom(['1.4', '2.3']);
   api.addFiles('vermongo.js');
   api.use([
     'mongo',
