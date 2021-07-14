@@ -1,6 +1,6 @@
 import {Mongo} from 'meteor/mongo';
 Meteor.otps = new Mongo.Collection('__otps');
-Meteor.otps._ensureIndex({phone: 1, purpose: 1}, {unique: true, name: 'phoneAndPurpose'});
+Meteor.otps.rawCollection().createIndex({phone: 1, purpose: 1}, {unique: true, name: 'phoneAndPurpose'});
 
 const otpPurpose = '__login__';
 

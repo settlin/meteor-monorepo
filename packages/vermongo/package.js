@@ -1,6 +1,6 @@
 Package.describe({
   name: 'settlin:vermongo',
-  version: '2.0.5',
+  version: '2.0.6',
   summary: 'Add versions to your documents. Implementing vermongo. Automatic versioning of collection documents',
   git: 'https://github.com/settlin/monorepo.git',
   documentation: 'README.md'
@@ -13,7 +13,7 @@ Package.onUse(function(api) {
     'mongo',
     'ecmascript',
     'matb33:collection-hooks@1.1.0',
-    'dburles:collection-helpers@1.0.2'
+    'dburles:collection-helpers@1.1.0'
   ]);
 
   api.export('Vermongo'); // necessary ?
