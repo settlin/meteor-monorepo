@@ -8,47 +8,58 @@ Phone and OTP based login for Meteor.
 In a Meteor app directory, enter:
 
 ```
-$ meteor npm install --save libphonenumber-js
-$ meteor add settlin:accounts-phone
+meteor npm install --save libphonenumber-js
+meteor add settlin:accounts-phone
 ```
+
 `libphonenumber-js` is used by `Accounts.sanitizePhone()`. I do not include it as a dependency so that if one overwrites the sanitizePhone function, the library is not added in vain.
 
 ## The database
 
 In accordance with the current `emails` field used by `accounts-password`, we use `phones` field in the user document: `{phones: [{number, verified: false}]}`. The otp is stored in `services.phone.otp`.
 
+You will need to create an index on the collection, to ensure performance
+
+```
+Meteor.otps.rawCollection().createIndex({phone: 1, purpose: 1}, {unique: true, name: 'phoneAndPurpose'});
+```
+
 ## The flow
 
 Use a simple Meteor method,
+
 ```js
 function sendOtpViaSms(otp) {.....} // the function through which you send sms
 
 Meteor.methods({
-	// to 
-	sendOtpForLogin: function(toPhone) {
-		if (Meteor.isClient) return null;
+ // to 
+ sendOtpForLogin: function(toPhone) {
+  if (Meteor.isClient) return null;
 
-		// otp must be generated on the server and never revealed to the client
-		check(toPhone, String);
+  // otp must be generated on the server and never revealed to the client
+  check(toPhone, String);
 
-		// send otp as sms
-		let otp = Math.round(Random.fraction() * 100000);
+  // send otp as sms
+  let otp = Math.round(Random.fraction() * 100000);
 
-		// Accounts.setPhoneOtp sets the otp in the `__otps` collection: {phone, otp, purpose: '__login__'}.
-		Accounts.setPhoneOtp(toPhone, otp);
-	},
+  // Accounts.setPhoneOtp sets the otp in the `__otps` collection: {phone, otp, purpose: '__login__'}.
+  Accounts.setPhoneOtp(toPhone, otp);
+ },
 });
 ```
 
 Use this method to send otp whenever needed. Next, take the otp from the user and call,
+
 ```
 Meteor.loginWithPhone({phone, otp}, callback);
 ```
+
 This method works as any other `Meteor.loginWith<Service>` method.
 
 ## Simple API
 
 ### Server
+
 ```js
 Meteor.otps; // the collection that contains otps in the form {phone, otp, purpose, createdAt} with an index created by: Meteor.otps._ensureIndex({phone: 1, purpose: 1}, {unique: true, name: 'phoneAndPurpose'});
 // not available on client
@@ -113,9 +124,9 @@ Accounts.sanitizePhone = function(phone) {...};
  * @return {Void} null
  */
 Meteor.loginWithPhone = function({
-	phone,
-	otp,
-	expectedUserId // optional. the user id which is expected for this phone. It is needed because phone numbers may not be unique, and at times we may need to check if the login is for an expected old user or a new user.
+ phone,
+ otp,
+ expectedUserId // optional. the user id which is expected for this phone. It is needed because phone numbers may not be unique, and at times we may need to check if the login is for an expected old user or a new user.
 }, callback) {...};
 
 /**
@@ -127,4 +138,4 @@ Meteor.loginWithPhone = function({
 Accounts.sanitizePhone = async function(phone) {...};
 ```
 
-If you need a phone + password login, use https://github.com/okland/accounts-phone.
+If you need a phone + password login, use <https://github.com/okland/accounts-phone>.
