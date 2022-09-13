@@ -34,7 +34,6 @@ After Meteor 2.7 we can use Meteor settings for setting your services under `Met
 ```
 
 ```javascript
-/* global ServiceConfiguration */
 import { Meteor } from 'meteor/meteor'
 import {ServiceConfiguration} from 'meteor/service-configuration';
 
