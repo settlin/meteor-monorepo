@@ -4,6 +4,7 @@ Monorepo for various packages
 # List of packages
 
 - [settlin:accounts-phone](packages/accounts-phone/README.md)
+- [settlin:accounts-zoho](packages/accounts-zoho/README.md)
 - [settlin:astronomy-meta-behavior](packages/astronomy-meta-behavior/README.md)
 - [settlin:astronomy-softremove-behavior](packages/astronomy-softremove-behavior/README.md)
 - [settlin:impersonate](packages/astronomy-impersonate/README.md)
