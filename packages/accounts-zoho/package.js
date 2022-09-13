@@ -5,14 +5,16 @@ Package.describe({
 });
 
 Package.onUse(api => {
-  api.use(['ecmascript']);
+  api.versionsFrom('1.4');
+	
+	api.use(['ecmascript']);
   api.use('accounts-base', ['client', 'server']);
   api.imply('accounts-base', ['client', 'server']);
   api.use('accounts-oauth', ['client', 'server']);
 
   api.use('oauth2', ['client', 'server']);
   api.use('oauth', ['client', 'server']);
-  api.use('fetch', ['server']);
+  api.use('fetch@0.1.1', ['server'], );
   api.use('service-configuration');
   api.use('random', 'client');
 	api.addFiles('client.js', 'client');
