@@ -7,7 +7,7 @@ Accounts.oauth.registerService('zoho');
 
 function parseJwt(token) { return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString()); }
 
-const whitelistedFields = ['id', 'email', 'verifiedEmail:', 'name', 'firstName:', 'lastName:', 'picture', 'gender'];
+const whitelistedFields = ['id', 'email', 'verifiedEmail', 'name', 'firstName', 'lastName', 'picture', 'gender'];
 
 const getServiceDataFromTokens = (tokens, query) => {
 	//data received from authorization call
@@ -87,16 +87,9 @@ OAuth.registerService('zoho', 2, null, getServiceData);
 
 Accounts.addAutopublishFields({
 	forLoggedInUser:
-	// publish access token since it can be used from the client (if
-	// transmitted over ssl or on
-	// localhost).
-	// refresh token probably shouldn't be sent down.
 	whitelistedFields.map(subfield => `services.zoho.${subfield}`), // don't publish refresh token
 
 	forOtherUsers:
-	// even with autopublish, no legitimate web app should be
-	// publishing all users' emails
-
     whitelistedFields.filter(field => !['email', 'verifiedEmail', 'id'].includes(field)).map(subfield => `services.zoho.${subfield}`),
 });
 
