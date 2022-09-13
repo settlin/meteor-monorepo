@@ -5,7 +5,7 @@ Package.describe({
 	git: 'https://github.com/settlin/meteor-monorepo.git'
 });
 
-Package.on_use(function(api) {
+Package.onUse(function(api) {
 	api.versionsFrom('METEOR@1.9');
 	api.use(['ecmascript', 'check', 'mongo', 'react-meteor-data@2.0.0', 'natestrauser:publish-performant-counts@0.1.2']);
 
