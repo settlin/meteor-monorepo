@@ -25,6 +25,7 @@ const getServiceDataFromTokens = (tokens, query) => {
 		api_domain: apiDomain,
 		token_type: tokenType,
 		expires_in: expiresIn,
+		accountId
 	} = tokens;
 
 	const sealedToken = OAuth.sealSecret(accessToken);
@@ -42,7 +43,7 @@ const getServiceDataFromTokens = (tokens, query) => {
 		...rest
 	} = idTokenDetails;
 
-	const serviceData = {id: email, code, accessToken: sealedToken, idToken, apiDomain, tokenType, email, verifiedEmail, firstName, lastName, atHash, location, accountsServer, ...rest};
+	const serviceData = {id: email, code, accessToken: sealedToken, idToken, apiDomain, tokenType, email, verifiedEmail, firstName, lastName, atHash, location, accountsServer, accountId, ...rest};
 
 	if (refreshToken) serviceData.refreshToken = refreshToken;
 	if (expiresIn) serviceData.expiresAt = Date.now() + 1000 * parseInt(expiresIn, 10);
@@ -53,7 +54,7 @@ const getAccessToken = async(query, callback) => {
 	const config = ServiceConfiguration.configurations.findOne({service: 'zoho'});
 	if (!config) throw new ServiceConfiguration.ConfigError();
 
-	const {fetch} = require('meteor/fetch');
+	const {fetch, Headers} = require('meteor/fetch');
 
 	const params = {
 		code: query.code,
@@ -70,7 +71,19 @@ const getAccessToken = async(query, callback) => {
 	};
 
 	const response = await fetch(config.accessTokenUrl, options);
-	const res = await response.json();
+	let res = await response.json();
+
+	const {data} = await (
+		await fetch(`http://mail.zoho.com/api/accounts`,
+		{
+			headers: new Headers({
+				Authorization: `Bearer ${res.access_token}`,
+			}),
+		}
+	)).json();
+
+	res = {...res, accountId: data[0].accountId}
+
 	if (res.error) {
 		callback(res.error);
 		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${res.error}`, {response: res, options, query});
@@ -92,4 +105,3 @@ Accounts.addAutopublishFields({
 	forOtherUsers:
     whitelistedFields.filter(field => !['email', 'verifiedEmail', 'id'].includes(field)).map(subfield => `services.zoho.${subfield}`),
 });
-

@@ -23,7 +23,13 @@ const requestCredential = (options, credentialRequestCompleteCallback) => {
 	const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent);
 	const display = mobile ? 'touch' : 'popup';
 
-	let scope = ['email', 'profile'];
+	let scope = [
+		'email', 
+		'profile', 
+		'ZohoMail.accounts.read',
+		...((options||{}).scope || [])
+	];
+
 	if (options && options.requestPermissions) {
 		scope = scope.concat(options.requestPermissions);
 	}
