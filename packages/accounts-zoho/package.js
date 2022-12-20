@@ -1,7 +1,7 @@
 Package.describe({
 	name: 'settlin:accounts-zoho',
   summary: "Login service for Zoho accounts",
-  version: "1.0.1",
+  version: "1.0.2",
 });
 
 Package.onUse(api => {
