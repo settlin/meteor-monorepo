@@ -96,7 +96,7 @@ const getAccessToken = async(query, callback) => {
 		callback('No accountId found');
 		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. No accountId in zoho response`, {response: data, options, query});
 	}
-	res = {...res, accountId: data[0].accountId}
+	res = {...res, accountId: data[0].accountId};
 
 	// eslint-disable-next-line no-undefined
 	callback(undefined, res);
