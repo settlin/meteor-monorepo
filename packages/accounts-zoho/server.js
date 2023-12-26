@@ -73,6 +73,11 @@ const getAccessToken = async(query, callback) => {
 	const response = await fetch(config.accessTokenUrl, options);
 	let res = await response.json();
 
+	if (res.error) {
+		callback(res.error);
+		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${res.error}`, {response: res, options, query});
+	}
+	
 	const {data} = await (
 		await fetch(`http://mail.zoho.com/api/accounts`,
 		{
@@ -82,12 +87,12 @@ const getAccessToken = async(query, callback) => {
 		}
 	)).json();
 
+	if (data.errorCode) {
+		callback(data.moreInfo);
+		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${data.errorCode}`, {response: data, options, query});
+	}
 	res = {...res, accountId: data[0].accountId}
 
-	if (res.error) {
-		callback(res.error);
-		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${res.error}`, {response: res, options, query});
-	}
 	// eslint-disable-next-line no-undefined
 	callback(undefined, res);
 	return res;
