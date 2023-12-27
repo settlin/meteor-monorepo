@@ -79,7 +79,7 @@ const getAccessToken = async(query, callback) => {
 	}
 	
 	const {data} = await (
-		await fetch(`http://mail.zoho.com/api/accounts`,
+		await fetch(`https://mail.zoho.com/api/accounts`,
 		{
 			headers: new Headers({
 				Authorization: `Bearer ${res.access_token}`,
@@ -94,7 +94,7 @@ const getAccessToken = async(query, callback) => {
 
 	if (!(data[0] || {}).accountId) {
 		callback('No accountId found');
-		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. No accountId in zoho response`, {response: data, options, query});
+		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. No accountId in zoho response`, {response: data, accessTokenRes: res, options, query});
 	}
 	res = {...res, accountId: data[0].accountId};
 
