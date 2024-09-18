@@ -1,4 +1,4 @@
-import { Event } from "meteor/jagi:astronomy";
+// import { Event } from "meteor/settlin:astronomy";
 
 const triggerAfterSoftRestore = function(doc, trusted) {
   // Trigger the "afterSoftRestore" event handlers.

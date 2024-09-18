@@ -1,5 +1,5 @@
 import { Match } from "meteor/check";
-import { Module } from "meteor/jagi:astronomy";
+// import { Module } from "meteor/settlin:astronomy";
 import documentSoftRestore from "../utils/documentSoftRestore";
 const isRemote = Module.modules.storage.utils.isRemote;
 const callMeteorMethod = Module.modules.storage.utils.callMeteorMethod;

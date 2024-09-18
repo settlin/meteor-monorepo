@@ -1,4 +1,4 @@
-import { Module, Behavior, Event } from "meteor/jagi:astronomy";
+// import { Module, Behavior, Event } from "meteor/settlin:astronomy";
 import beforeFind from "../class_events/beforeFind";
 import softRemove from "../class_prototype_methods/softRemove";
 import softRestore from "../class_prototype_methods/softRestore";

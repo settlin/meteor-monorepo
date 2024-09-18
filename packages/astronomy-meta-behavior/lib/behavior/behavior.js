@@ -1,4 +1,4 @@
-import { Behavior } from 'meteor/jagi:astronomy';
+// import { Behavior } from 'meteor/settlin:astronomy';
 
 Behavior.create({
 	name: 'meta',

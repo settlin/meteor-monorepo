@@ -1,6 +1,6 @@
 import triggerBeforeSoftRemove from "./triggerBeforeSoftRemove";
 import triggerAfterSoftRemove from "./triggerAfterSoftRemove";
-import { Module } from "meteor/jagi:astronomy";
+// import { Module } from "meteor/settlin:astronomy";
 
 const getModifier = Module.modules.storage.utils.getModifier;
 

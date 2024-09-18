@@ -1,4 +1,4 @@
-import { Module } from "meteor/jagi:astronomy";
+// import { Module } from "meteor/settlin:astronomy";
 import classSoftRemove from "../utils/classSoftRestore";
 const wrapCallback = Module.modules.storage.utils.wrapCallback;
 

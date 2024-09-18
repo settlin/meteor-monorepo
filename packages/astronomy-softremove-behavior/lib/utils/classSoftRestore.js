@@ -1,4 +1,4 @@
-import { Class as AstroClass, Module } from "meteor/jagi:astronomy";
+// import { Class as AstroClass, Module } from "meteor/settlin:astronomy";
 import documentSoftRestore from "./documentSoftRestore";
 const throwIfSelectorIsNotId =
   Module.modules.storage.utils.throwIfSelectorIsNotId;
@@ -18,9 +18,9 @@ const classRestore = function(args = {}) {
     throwIfSelectorIsNotId(selector, "softRestore");
   }
 
-  let Class = AstroClass.get(className);
+  let CL = Class.get(className);
   // Get all documents matching selector.
-  let docs = Class.find(selector, {
+  let docs = CL.find(selector, {
     disableEvents: true
   });
   // Prepare result of the method execution.
