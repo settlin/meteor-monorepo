@@ -15,7 +15,7 @@
     "react-table": "^6.8.5"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.2",
+    "babel-eslint": "^8.2.3",
     "eslint": "^4.18.1"
   }
 }
