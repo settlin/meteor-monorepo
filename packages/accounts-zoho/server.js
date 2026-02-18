@@ -9,6 +9,19 @@ function parseJwt(token) { return JSON.parse(Buffer.from(token.split('.')[1], 'b
 
 const whitelistedFields = ['id', 'email', 'verifiedEmail', 'name', 'firstName', 'lastName', 'picture', 'gender'];
 
+const FETCH_TIMEOUT_MS = 15000; // 15 second timeout for all fetch calls
+
+/**
+ * Creates an AbortSignal that times out after the given ms.
+ * Uses AbortController (available in Node 14.17+).
+ */
+const createTimeoutSignal = (ms) => {
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), ms);
+	// Allow clearing the timer if the request completes before timeout
+	return {signal: controller.signal, clear: () => clearTimeout(timer)};
+};
+
 const getServiceDataFromTokens = (tokens, query) => {
 	//data received from authorization call
 	const {
@@ -51,56 +64,84 @@ const getServiceDataFromTokens = (tokens, query) => {
 };
 
 const getAccessToken = async(query, callback) => {
-	const config = ServiceConfiguration.configurations.findOne({service: 'zoho'});
-	if (!config) throw new ServiceConfiguration.ConfigError();
-
-	const {fetch, Headers} = require('meteor/fetch');
-
-	const params = {
-		code: query.code,
-		client_id: config.clientId,
-		client_secret: OAuth.openSecret(config.secret),
-		redirect_uri: OAuth._redirectUri('zoho', config),
-		state: query.state,
-		grant_type: 'authorization_code',
-	};
-
-	let options = {
-		method: 'post',
-		body: new URLSearchParams(params),
-	};
-
-	const response = await fetch(config.accessTokenUrl, options);
-	let res = await response.json();
-
-	if (res.error) {
-		callback(res.error);
-		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${res.error}`, {response: res, options, query});
-	}
-	
-	const {data} = await (
-		await fetch(`https://mail.zoho.com/api/accounts`,
-		{
-			headers: new Headers({
-				Authorization: `Bearer ${res.access_token}`,
-			}),
+	try {
+		const config = ServiceConfiguration.configurations.findOne({service: 'zoho'});
+		if (!config) {
+			return callback(new ServiceConfiguration.ConfigError());
 		}
-	)).json();
 
-	if (data.errorCode) {
-		callback(data.moreInfo);
-		throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${data.errorCode}`, {response: data, options, query});
+		const {fetch, Headers} = require('meteor/fetch');
+
+		const params = {
+			code: query.code,
+			client_id: config.clientId,
+			client_secret: OAuth.openSecret(config.secret),
+			redirect_uri: OAuth._redirectUri('zoho', config),
+			state: query.state,
+			grant_type: 'authorization_code',
+		};
+
+		const options = {
+			method: 'post',
+			body: new URLSearchParams(params),
+		};
+
+		// Token exchange request — with timeout
+		const tokenTimeout = createTimeoutSignal(FETCH_TIMEOUT_MS);
+		let response;
+		try {
+			response = await fetch(config.accessTokenUrl, {...options, signal: tokenTimeout.signal});
+		} catch (err) {
+			tokenTimeout.clear();
+			const msg = err.name === 'AbortError'
+				? `Zoho token exchange timed out after ${FETCH_TIMEOUT_MS}ms`
+				: `Zoho token exchange failed: ${err.message}`;
+			return callback(new Meteor.Error('zoho-token-error', msg));
+		}
+		tokenTimeout.clear();
+
+		let res;
+		try {
+			res = await response.json();
+		} catch (err) {
+			return callback(new Meteor.Error('zoho-token-error', `Failed to parse Zoho token response: ${err.message}`));
+		}
+
+		if (res.error) {
+			return callback(new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. ${res.error}`));
+		}
+
+		// Mail accounts request — use accounts-server domain from OAuth callback, fallback to zoho.com
+		// This call is for fetching the accountId; if it fails, we still complete OAuth successfully
+		const accountsServerDomain = (query['accounts-server'] || 'https://accounts.zoho.com').replace('accounts.zoho', 'mail.zoho');
+		const mailApiUrl = `${accountsServerDomain}/api/accounts`;
+
+		const mailTimeout = createTimeoutSignal(FETCH_TIMEOUT_MS);
+		try {
+			const mailResponse = await fetch(mailApiUrl, {
+				headers: new Headers({
+					Authorization: `Bearer ${res.access_token}`,
+				}),
+				signal: mailTimeout.signal,
+			});
+			mailTimeout.clear();
+
+			const mailResult = await mailResponse.json();
+			if (mailResult.data && !mailResult.data.errorCode && Array.isArray(mailResult.data) && mailResult.data[0]?.accountId) {
+				res = {...res, accountId: mailResult.data[0].accountId};
+			}
+		} catch (err) {
+			mailTimeout.clear();
+			// Log but don't fail — the mail accounts call is non-essential for OAuth
+			console.warn(`[accounts-zoho] Mail accounts API call failed (non-fatal): ${err.message}`);
+		}
+
+		return callback(null, res);
+	} catch (err) {
+		// Catch-all for any unexpected errors
+		console.error('[accounts-zoho] Unexpected error in getAccessToken:', err);
+		return callback(err instanceof Meteor.Error ? err : new Meteor.Error('zoho-oauth-error', `Unexpected error during Zoho OAuth: ${err.message}`));
 	}
-
-	// if (!(data[0] || {}).accountId) {
-	// 	callback('No accountId found');
-	// 	throw new Meteor.Error(response.status, `Failed to complete OAuth handshake with zoho. No accountId in zoho response`, {response: data, accessTokenRes: res, options, query});
-	// }
-	// res = {...res, accountId: data[0].accountId};
-
-	// eslint-disable-next-line no-undefined
-	callback(undefined, res);
-	return res;
 };
 
 const getTokensCall = Meteor.wrapAsync(getAccessToken);
