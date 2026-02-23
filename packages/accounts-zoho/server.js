@@ -11,15 +11,19 @@ const whitelistedFields = ['id', 'email', 'verifiedEmail', 'name', 'firstName', 
 
 const FETCH_TIMEOUT_MS = 15000; // 15 second timeout for all fetch calls
 
-/**
- * Creates an AbortSignal that times out after the given ms.
- * Uses AbortController (available in Node 14.17+).
- */
-const createTimeoutSignal = (ms) => {
-	const controller = new AbortController();
-	const timer = setTimeout(() => controller.abort(), ms);
-	// Allow clearing the timer if the request completes before timeout
-	return {signal: controller.signal, clear: () => clearTimeout(timer)};
+const fetchWithTimeout = async (url, options, ms, fetchFn = global.fetch || require('meteor/fetch').fetch) => {
+	let timer;
+	const timeoutPromise = new Promise((_, reject) => {
+		timer = setTimeout(() => {
+			const err = new Error('AbortError');
+			err.name = 'AbortError';
+			reject(err);
+		}, ms);
+	});
+	return Promise.race([
+		fetchFn(url, options),
+		timeoutPromise
+	]).finally(() => clearTimeout(timer));
 };
 
 const getServiceDataFromTokens = (tokens, query) => {
@@ -87,18 +91,15 @@ const getAccessToken = async(query, callback) => {
 		};
 
 		// Token exchange request — with timeout
-		const tokenTimeout = createTimeoutSignal(FETCH_TIMEOUT_MS);
 		let response;
 		try {
-			response = await fetch(config.accessTokenUrl, {...options, signal: tokenTimeout.signal});
+			response = await fetchWithTimeout(config.accessTokenUrl, {...options}, FETCH_TIMEOUT_MS, fetch);
 		} catch (err) {
-			tokenTimeout.clear();
 			const msg = err.name === 'AbortError'
 				? `Zoho token exchange timed out after ${FETCH_TIMEOUT_MS}ms`
 				: `Zoho token exchange failed: ${err.message}`;
 			return callback(new Meteor.Error('zoho-token-error', msg));
 		}
-		tokenTimeout.clear();
 
 		let res;
 		try {
@@ -116,22 +117,18 @@ const getAccessToken = async(query, callback) => {
 		const accountsServerDomain = (query['accounts-server'] || 'https://accounts.zoho.com').replace('accounts.zoho', 'mail.zoho');
 		const mailApiUrl = `${accountsServerDomain}/api/accounts`;
 
-		const mailTimeout = createTimeoutSignal(FETCH_TIMEOUT_MS);
 		try {
-			const mailResponse = await fetch(mailApiUrl, {
+			const mailResponse = await fetchWithTimeout(mailApiUrl, {
 				headers: new Headers({
 					Authorization: `Bearer ${res.access_token}`,
 				}),
-				signal: mailTimeout.signal,
-			});
-			mailTimeout.clear();
+			}, FETCH_TIMEOUT_MS, fetch);
 
 			const mailResult = await mailResponse.json();
 			if (mailResult.data && !mailResult.data.errorCode && Array.isArray(mailResult.data) && mailResult.data[0]?.accountId) {
 				res = {...res, accountId: mailResult.data[0].accountId};
 			}
 		} catch (err) {
-			mailTimeout.clear();
 			// Log but don't fail — the mail accounts call is non-essential for OAuth
 			console.warn(`[accounts-zoho] Mail accounts API call failed (non-fatal): ${err.message}`);
 		}
