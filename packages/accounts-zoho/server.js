@@ -62,7 +62,7 @@ const getServiceDataFromTokens = (tokens, query) => {
 
 	const serviceData = {id: email, code, accessToken: sealedToken, idToken, apiDomain, tokenType, email, verifiedEmail, firstName, lastName, atHash, location, accountsServer, accountId, ...rest};
 
-	if (refreshToken) serviceData.refreshToken = refreshToken;
+	if (refreshToken) serviceData.refreshToken = OAuth.sealSecret(refreshToken);
 	if (expiresIn) serviceData.expiresAt = Date.now() + 1000 * parseInt(expiresIn, 10);
 	return {serviceData};
 };
